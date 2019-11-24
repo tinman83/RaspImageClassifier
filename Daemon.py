@@ -42,7 +42,7 @@ class Daemon:
 		si = open(os.devnull, 'r')
 		so = open(os.devnull, 'a+')
 		se = open(os.devnull, 'a+')
-		
+		print("daemon starting")
 		# os.dup2(si.fileno(), sys.stdin.fileno())
 		# os.dup2(so.fileno(), sys.stdout.fileno())
 		# os.dup2(se.fileno(), sys.stderr.fileno())
