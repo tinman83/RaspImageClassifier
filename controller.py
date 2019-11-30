@@ -10,7 +10,6 @@ import picamera
 
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
-from process import Process
 
 
 class Controller(object):
@@ -37,6 +36,7 @@ class Controller(object):
             output = scale * (output - zero_point)
             
             ordered = np.argpartition(-output, top_k)
+
             return [(i, output[i]) for i in ordered[:top_k]]
     
     def readCamera(self,interpreter,labels,height,width):
@@ -76,7 +76,7 @@ class Controller(object):
         interpreter = Interpreter('/home/pi/Desktop/MLProject/Model/mobilenet_v1_1.0_224_quant.tflite')
         interpreter.allocate_tensors()
         _, height, width, _ = interpreter.get_input_details()[0]['shape']
-        process=Process()
+
         self.predictFlag=True
         if self.predictFlag==True:
             self.readCamera(interpreter,labels,height,width)
