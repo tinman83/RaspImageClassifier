@@ -1,13 +1,16 @@
 """Generic linux daemon base class for python 3.x."""
 
 import sys, os, time, atexit, signal
+from flags import ProcessFlags
 
 class Daemon:
 	"""A generic daemon class.
 
 	Usage: subclass the daemon class and override the run() method."""
 
-	def __init__(self, pidfile): self.pidfile = pidfile
+	def __init__(self, pidfile,flags): 
+		self.pidfile = pidfile
+		self.flags=flags
 	
 	def daemonize(self):
 		"""Deamonize class. UNIX double fork mechanism."""

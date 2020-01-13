@@ -5,37 +5,46 @@ import threading
 from Daemon import Daemon
 from controller import Controller 
 from message_service import MqttMessageService
+from flags import ProcessFlags
 
 class MyDaemon(Daemon):
+    def __init__(self,pidfile,flags):
+        self.flags=flags
+        self.pidfile=pidfile
+        print(self.flags.getPredictFlag())
 
     def run(self):
         # print(self.flags.getPredictFlag())
         print('controller running')
-        controller = Controller()
+        controller = Controller(self.flags)
         controller.run()
 
-msg_service=MqttMessageService()
+processflag=ProcessFlags()
+msg_service=MqttMessageService(processflag)
 def mqtt_Service_Start_Thread(args):
     mqttBroker=args[0]
     mqttPort=args[1]
+    flag=args[2]
 
-    msg_service=MqttMessageService()
+    #msg_service=MqttMessageService(flag)
 
     msg_service.start_mqtt_service(mqttBroker,mqttPort)
 
 if __name__ == "__main__":
-    mqttBroker='mqtt.eclipse.org'
+    mqttBroker='broker.hivemq.com'
     mqttPort=1883
     
-    daemon = MyDaemon('/tmp/classify.pid')
+    processflag.setPredictFlag(False)
+    
+    daemon = MyDaemon('/tmp/classify.pid',processflag)
     
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
 
-            # mqtt_args = [mqttBroker,mqttPort]
-            # mqtt_thread = threading.Thread(target=mqtt_Service_Start_Thread, args=(mqtt_args,))
-            # mqtt_thread.start()
-            msg_service.start_mqtt_service(mqttBroker,mqttPort)
+            mqtt_args = [mqttBroker,mqttPort,processflag]
+            mqtt_thread = threading.Thread(target=mqtt_Service_Start_Thread, args=(mqtt_args,))
+            mqtt_thread.start()
+            #msg_service.start_mqtt_service(mqttBroker,mqttPort)
             print("Thread started")
 
             daemon.start()

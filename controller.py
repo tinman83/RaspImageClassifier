@@ -10,10 +10,13 @@ import picamera
 
 from PIL import Image
 from tflite_runtime.interpreter import Interpreter
+from flags import ProcessFlags
 
 
-class Controller(object):
-    predictFlag=True
+class Controller():
+    def __init__(self,flags):
+        self.flags=flags
+
     labels=[]
     def load_labels(self,path):
         with open(path, 'r') as f:
@@ -43,12 +46,12 @@ class Controller(object):
 
         with picamera.PiCamera(resolution=(640, 480), framerate=30) as camera:
             camera.start_preview()
-            if self.predictFlag==True:
-                #print("started preview")
-                try:
-                    stream = io.BytesIO()
-                    for _ in camera.capture_continuous(
-                        stream, format='jpeg', use_video_port=True):
+            try:
+                stream = io.BytesIO()
+                for _ in camera.capture_continuous(
+                    stream, format='jpeg', use_video_port=True):
+                    print("Check flag: " + str(self.flags.getPredictFlag()))
+                    if self.flags.getPredictFlag()==True:
                         stream.seek(0)
                         #print("image stream")
                         image = Image.open(stream).convert('RGB').resize((width, height),Image.ANTIALIAS)
@@ -59,14 +62,11 @@ class Controller(object):
                         stream.seek(0)
                         stream.truncate()
                         camera.annotate_text = '%s %.2f\n%.1fms' % (labels[label_id], prob,elapsed_ms)
-                        #print(label_id)
-                        #time.sleep(5)
-                        predictFlag=True
-                finally:
-                    #camera.stop_preview()
-                    self.predictFlag=True
-                
-            else:
+                        print(label_id)
+                        time.sleep(5)
+                    else:
+                        time.sleep(5)
+            finally:
                 camera.stop_preview()
                 return
         
@@ -77,12 +77,13 @@ class Controller(object):
         interpreter.allocate_tensors()
         _, height, width, _ = interpreter.get_input_details()[0]['shape']
 
-        self.predictFlag=True
-        if self.predictFlag==True:
-            self.readCamera(interpreter,labels,height,width)
-        else:
-            print("sleeping")
-            time.sleep(10)
+        print("Flag" + str(self.flags.getPredictFlag()))
+        self.readCamera(interpreter,labels,height,width)
+        # if self.flags.getPredictFlag()==True:
+            
+        # else:
+        #     print("sleeping")
+        #     time.sleep(10)
         # while True:
         #     #print('Hello from the Python Sorter Service')
         #     #label=process.startPredict()

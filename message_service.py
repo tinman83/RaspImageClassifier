@@ -6,8 +6,9 @@ class MqttMessageService:
     client=mqtt.Client()
     Connected = False
 
-    def __init__(self):
+    def __init__(self,flags):
         self.client=mqtt.Client()
+        self.pflags=flags
 
     def on_connect(self,client, userdata, flags, rc):
          print("Connected with result code "+str(rc))
@@ -15,7 +16,7 @@ class MqttMessageService:
          Connected=True
  
          try:
-            r=self.client.subscribe("imageclassifier/test")
+            r=self.client.subscribe("imageclassifier/test",0)
             if r[0]==0:
                 print("subscribed to topic ") 
             else:
@@ -38,7 +39,7 @@ class MqttMessageService:
     def on_message(self,client, userdata, msg):
         print("Message Received")
         print(msg.topic+" "+str(msg.payload))
-        self.flags.setPredictFlag(True)
+        self.pflags.setPredictFlag(True)
 
     def start_mqtt_service(self,broker,port):
         global Connected
@@ -47,13 +48,13 @@ class MqttMessageService:
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
         try:
-            self.client.connect(broker, port=port)
+            self.client.connect(broker,port,60)
         except:
             print("cannot connect")
             sys.exit(1)
 
         print('loop started')
-        self.client.loop_start()
+        self.client.loop_forever()
         while Connected != True:
             print("waiting to connect")
             time.sleep(0.1)
